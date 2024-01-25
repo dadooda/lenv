@@ -62,7 +62,7 @@ lenv() {
 }
 
 # Temporarily step into the support directory via `pushd`.
-lenvcd() {
+lecd() {
   local FN=$(_lenv_fn); [ -n "${FN}" ] || return 1
   local DIR=${FN%/*}
 
@@ -77,7 +77,7 @@ lenvcd() {
 # Locate, edit and reload the envfile or the specified module.
 #
 # $1: (optional) module name.
-lenvedit() {
+leed() {
   if [ $# != 0 ]; then
     # Edit the module.
 
@@ -111,10 +111,10 @@ lenvedit() {
 
   # NOTE: Some editors output a newline here. Not our glitch.
 
-  # If a successful global edit, print module names as a hint.
+  # If a successful global edit, print loaded module names as a hint.
   if [ -z "${MOD}" ]; then
-    local MODS=$(lenvmod)
-    [ -n "${MODS}" ] && echo -e "Also, these modules have been found:\n\n${MODS}" >&2
+    local MODS=$(lemod)
+    [ -n "${MODS}" ] && echo -e "Also, these modules have been loaded:\n\n${MODS}" >&2
   fi
 
   # Finally, source the envfile.
@@ -122,7 +122,7 @@ lenvedit() {
 }
 
 # List loaded modules.
-lenvmod() {
+lemod() {
   declare -p \
   | grep "declare -- _ENV_MOD_" \
   | sed "s/^declare -- _ENV_MOD_//"
