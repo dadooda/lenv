@@ -5,31 +5,13 @@
 # See https://github.com/dadooda/lenv.
 #
 
+# AF: TODO: Дочистил.
+
 #----------------------------- Configuration
 
 # Envfile basename we're looking for in the support directories.
 _LENV_BN="env.sh"
-
-# Load the envfile from the support directory.
-lenv() {
-  local FN
-  FN=$(_lenv_fn) || return 1
-
-  [[ -r ${FN} ]] || {
-    echo "Error: File is not readable: ${FN}" >&2
-    return 1
-  }
-
-  # NOTE: The logic below is somewhat "tilted" to generate prettier `set -x` output.
-  if [[ ${VERBOSE:-} = "!" ]]; then
-    set -x
-    . "${FN}"
-    set +x
-  else
-    echo "Loading: ${FN}"
-    . "${FN}"
-  fi
-}
+_LENV_EDITOR="nano"
 
 # Temporarily step into the support directory via `pushd`.
 lecd() {
@@ -80,7 +62,7 @@ leed() {
   fi
 
   # Edit the envfile.
-  ${EDITOR:-nano} "${FN}" || {
+  ${EDITOR:-$_LENV_EDITOR} "${FN}" || {
     echo "Error editing '${FN}'" >&2
     return 1
   }
@@ -106,24 +88,56 @@ lemod() {
   | sed "s/^declare -.* _ENV_MOD_//"
 }
 
+# Load the envfile from the support directory.
+lenv() {
+  local FN
+  FN=$(_lenv_fn) || return 1
+
+  [[ -r ${FN} ]] || {
+    echo "Error: File is not readable: ${FN}" >&2
+    return 1
+  }
+
+  # NOTE: The logic below is somewhat "tilted" to generate prettier `set -x` output.
+  if [[ ${VERBOSE:-} = "!" ]]; then
+    set -x
+    . "${FN}"
+    set +x
+  else
+    echo "Loading: ${FN}"
+    . "${FN}"
+  fi
+}
+
 #--------------------------------------- Service
 
 # Locate and print the envfile path. Return 1 if not found.
 _lenv_fn() {
-  # Search for a readable envfile up the tree.
-
   local BN=$_LENV_BN
   local D
   D=$(realpath "${PWD}") || return 1
 
   local TRY
 
-  for TRY in "$(realpath "$D/../${D##*/}_support")/${BN}" "$(realpath "${D}/../_support")/${BN}"; do
-    if [[ -r ${TRY} ]]; then
-      echo "${TRY}"
-      return 0
-    fi
+  while [[ -n ${D} ]]; do
+    for TRY in "$(realpath "${D}/../${D##*/}_support")/${BN}" "$(realpath "${D}/../_support")/${BN}"; do
+      if [[ -r ${TRY} ]]; then
+        echo "${TRY}"
+        return 0
+      fi
+    done
+
+    D=${D%/*}
   done
+
+  # AF: TODO: Fin. Это нужно?
+  # for TRY in "$(realpath "${D}/../${D##*/}_support")/${BN}" "$(realpath "${D}/../_support")/${BN}"; do
+  #   echo -e "\e[1;32m${FUNCNAME[0]}():\e[0m last TRY:${TRY}" >&2
+  #   if [[ -r ${TRY} ]]; then
+  #     echo "${TRY}"
+  #     return 0
+  #   fi
+  # done
 
   echo "Error: Support directory with a readable \`${BN}\` not found" >&2
   return 1
