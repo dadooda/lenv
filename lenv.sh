@@ -12,10 +12,8 @@ _LENV_BN="env.sh"
 
 # Load the envfile from the support directory.
 lenv() {
-  echo -e "\e[1;32m${FUNCNAME[0]}():\e[0m hey" >&2
   local FN
   FN=$(_lenv_fn) || return 1
-  echo -e "\e[1;32m${FUNCNAME[0]}():\e[0m cp 1:{cp 1}" >&2
 
   [[ -r ${FN} ]] || {
     echo "Error: File is not readable: ${FN}" >&2
@@ -103,10 +101,9 @@ leed() {
 
 # List loaded modules.
 lemod() {
-  # AF: TODO: Better filtering of exported vars.
   declare -p \
-  | grep "declare -- _ENV_MOD_" \
-  | sed "s/^declare -- _ENV_MOD_//"
+  | egrep "declare .+_ENV_MOD.+=" \
+  | sed "s/^declare -.* _ENV_MOD_//"
 }
 
 #--------------------------------------- Service
@@ -115,33 +112,13 @@ lemod() {
 _lenv_fn() {
   # Search for a readable envfile up the tree.
 
-  # AF: TODO: Что за хрень? CUP.
-  # Testing: `_LENV_FN_ROOT` is an optional root specifier.
-
   local BN=$_LENV_BN
   local D
-  echo -e "\e[1;32m${FUNCNAME[0]}():\e[0m hey:{}" >&2
   D=$(realpath "${PWD}") || return 1
-
-  echo -e "\e[1;32m${FUNCNAME[0]}():\e[0m cp 1:{cp 1}" >&2
 
   local TRY
 
-  # AF: TODO: CUP.
-  # while [[ -n ${D#${_LENV_FN_ROOT:-}} ]]; do
-  #   for TRY in "`realpath "${D}/../${D##*/}_support"`/${BN}" "`realpath "${D}/../_support"`/${BN}"; do
-  #     echo -e "\e[1;32m${FUNCNAME[0]}():\e[0m TRY:${TRY}"
-  #     if [[ -r ${TRY} ]]; then
-  #       echo "${TRY}"
-  #       return 0
-  #     fi
-  #   done
-
-  #   D=${D%/*}
-  # done
-
   for TRY in "$(realpath "$D/../${D##*/}_support")/${BN}" "$(realpath "${D}/../_support")/${BN}"; do
-    echo -e "\e[1;32m${FUNCNAME[0]}():\e[0m TRY:${TRY}" >&2
     if [[ -r ${TRY} ]]; then
       echo "${TRY}"
       return 0
