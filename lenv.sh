@@ -13,6 +13,29 @@
 _LENV_BN="env.sh"
 _LENV_EDITOR="nano"
 
+#--------------------------------------- The tools
+
+# Load the envfile from the support directory.
+le() {
+  local FN
+  FN=$(_lenv_fn) || return 1
+
+  [[ -r ${FN} ]] || {
+    echo "Error: File is not readable: ${FN}" >&2
+    return 1
+  }
+
+  # NOTE: The logic below is somewhat "tilted" to generate prettier `set -x` output.
+  if [[ ${VERBOSE:-} = "!" ]]; then
+    set -x
+    . "${FN}"
+    set +x
+  else
+    echo "Loading: ${FN}"
+    . "${FN}"
+  fi
+}
+
 # Temporarily step into the support directory via `pushd`.
 lecd() {
   local FN
@@ -86,27 +109,6 @@ lemod() {
   declare -p \
   | egrep "declare .+_ENV_MOD.+=" \
   | sed "s/^declare -.* _ENV_MOD_//"
-}
-
-# Load the envfile from the support directory.
-lenv() {
-  local FN
-  FN=$(_lenv_fn) || return 1
-
-  [[ -r ${FN} ]] || {
-    echo "Error: File is not readable: ${FN}" >&2
-    return 1
-  }
-
-  # NOTE: The logic below is somewhat "tilted" to generate prettier `set -x` output.
-  if [[ ${VERBOSE:-} = "!" ]]; then
-    set -x
-    . "${FN}"
-    set +x
-  else
-    echo "Loading: ${FN}"
-    . "${FN}"
-  fi
 }
 
 #--------------------------------------- Service
