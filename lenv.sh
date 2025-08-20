@@ -5,8 +5,6 @@
 # See https://github.com/dadooda/lenv.
 #
 
-# AF: TODO: Дочистил.
-
 #----------------------------- Configuration
 
 # Envfile basename we're looking for in the support directories.
@@ -27,17 +25,6 @@ le() {
 
   echo "Loading: ${FN}"
   . "${FN}"
-
-  ## AF: TODO: Fin. У нас и так verbose. :)
-  ## NOTE: The logic below is somewhat "tilted" to generate prettier `set -x` output.
-  #if [[ ${VERBOSE:-} = "!" ]]; then
-  #  set -x
-  #  . "${FN}"
-  #  set +x
-  #else
-  #  echo "Loading: ${FN}"
-  #  . "${FN}"
-  #fi
 }
 
 # Temporarily step into the support directory via `pushd`.
@@ -66,7 +53,7 @@ leed() {
   if [[ $# -ge 1 ]]; then
     # Edit the module.
 
-    MOD=$1
+    MOD=${1}
     VN="_ENV_MOD_${MOD}"
     FN=${!VN}
 
@@ -119,19 +106,16 @@ lemod() {
 
 # Locate and print the envfile path. Return 1 if not found.
 _lenv_fn() {
-  local BN=$_LENV_BN
+  local BN=${_LENV_BN}
   local D
   D=$(realpath "${PWD}") || return 1
 
   local TRY
 
   while [[ -n ${D} ]]; do
-    # AF: TODO: Fin. Пробую поддерживать `_support/` на нашем уровне.
-    ##echo "-- D:${D}" >&2
     for TRY in "$(realpath "${D}/_support")/${BN}" "$(realpath "${D}/../${D##*/}_support")/${BN}"; do
       [[ ${VERBOSE:-} = "!" ]] && echo "Trying: ${TRY}" >&2
-      ##echo "-- TRY:${TRY}" >&2
-    #for TRY in "$(realpath "${D}/../${D##*/}_support")/${BN}" "$(realpath "${D}/../_support")/${BN}"; do
+
       if [[ -r ${TRY} ]]; then
         echo "${TRY}"
         return 0
