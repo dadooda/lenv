@@ -25,15 +25,19 @@ le() {
     return 1
   }
 
-  # NOTE: The logic below is somewhat "tilted" to generate prettier `set -x` output.
-  if [[ ${VERBOSE:-} = "!" ]]; then
-    set -x
-    . "${FN}"
-    set +x
-  else
-    echo "Loading: ${FN}"
-    . "${FN}"
-  fi
+  echo "Loading: ${FN}"
+  . "${FN}"
+
+  ## AF: TODO: Fin. У нас и так verbose. :)
+  ## NOTE: The logic below is somewhat "tilted" to generate prettier `set -x` output.
+  #if [[ ${VERBOSE:-} = "!" ]]; then
+  #  set -x
+  #  . "${FN}"
+  #  set +x
+  #else
+  #  echo "Loading: ${FN}"
+  #  . "${FN}"
+  #fi
 }
 
 # Temporarily step into the support directory via `pushd`.
@@ -122,7 +126,12 @@ _lenv_fn() {
   local TRY
 
   while [[ -n ${D} ]]; do
-    for TRY in "$(realpath "${D}/../${D##*/}_support")/${BN}" "$(realpath "${D}/../_support")/${BN}"; do
+    # AF: TODO: Fin. Пробую поддерживать `_support/` на нашем уровне.
+    ##echo "-- D:${D}" >&2
+    for TRY in "$(realpath "${D}/_support")/${BN}" "$(realpath "${D}/../${D##*/}_support")/${BN}"; do
+      [[ ${VERBOSE:-} = "!" ]] && echo "Trying: ${TRY}" >&2
+      ##echo "-- TRY:${TRY}" >&2
+    #for TRY in "$(realpath "${D}/../${D##*/}_support")/${BN}" "$(realpath "${D}/../_support")/${BN}"; do
       if [[ -r ${TRY} ]]; then
         echo "${TRY}"
         return 0
@@ -131,15 +140,6 @@ _lenv_fn() {
 
     D=${D%/*}
   done
-
-  # AF: TODO: Fin. Это нужно?
-  # for TRY in "$(realpath "${D}/../${D##*/}_support")/${BN}" "$(realpath "${D}/../_support")/${BN}"; do
-  #   echo -e "\e[1;32m${FUNCNAME[0]}():\e[0m last TRY:${TRY}" >&2
-  #   if [[ -r ${TRY} ]]; then
-  #     echo "${TRY}"
-  #     return 0
-  #   fi
-  # done
 
   echo "Error: Support directory with a readable \`${BN}\` not found" >&2
   return 1
