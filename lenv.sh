@@ -5,16 +5,19 @@
 # See https://github.com/dadooda/lenv.
 #
 
-#----------------------------- Configuration
+#--------------------------------------- Configuration
 
 # Envfile basename we're looking for in the support directories.
-_LENV_BN="env.sh"
-_LENV_EDITOR="nano"
+export _LENV_BN="env.sh"
+export _LENV_EDITOR="nano"
 
-#--------------------------------------- The tools
+#--------------------------------------- Tools
 
 # Load the envfile from the support directory.
 le() {
+  # Drop global envfile pointer.
+  unset _LENV_FN
+
   local FN
   FN=$(_lenv_fn) || return 1
 
@@ -25,6 +28,12 @@ le() {
 
   echo "Loading: ${FN}"
   . "${FN}"
+
+  [[ $? = 0 ]] && {
+    # Export the global envfile pointer.
+    # It's always a REAL path.
+    export _LENV_FN=$FN
+  }
 }
 
 # Temporarily step into the support directory via `pushd`.
